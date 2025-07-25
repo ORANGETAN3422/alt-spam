@@ -41,7 +41,7 @@
             <br />
         {/if}
         {#if showWave}
-            <WaveSimulator {clickTimes} {releaseTimes} {testActive} />
+            <WaveSimulator {clickTimes} {releaseTimes} {testActive} {testTime} />
         {/if}
     {/if}
 </main>
@@ -57,8 +57,8 @@
     </div>
     <StopTestButton bind:testActive bind:debouncing />
     <br />
-    <button on:click={() => {showGraph = !showGraph}}>Graph: {showGraph ? "On" : "Off"}</button>
-    <button on:click={() => {showWave = !showWave}}>Wave: {showWave ? "On" : "Off"}</button>
+    <button on:click={() => {showGraph = !showGraph}}>{showGraph ? "Hide Graph" : "Show Graph"}</button>
+    <button on:click={() => {showWave = !showWave}}>{showWave ? "Hide Wave" : "Show Wave"}</button>
     <div class="dropdown-wrapper">
         <b>More Stats</b>
         <AdvancedResultsDropdown bind:clickIntervals />

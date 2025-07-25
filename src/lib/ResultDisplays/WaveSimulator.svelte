@@ -4,6 +4,7 @@
     export let clickTimes = [];
     export let releaseTimes = [];
     export let testActive = false;
+    export let testTime = 5;
 
     let pathData = "";
     let points = [];
@@ -21,14 +22,16 @@
 
     let scrollOffset = 0;
 
-    let waveX = 0;
-    let waveY = 0;
+    let position = { X: 0, Y: 0 };
     let waveAngle = 0;
     let smoothedWaveAngle = 0;
 
     let isPanning = false;
     let panStartX = 0;
     let initialScrollOffset = 0;
+
+    let scrollBarWidth = 0;
+    let scrollBarOffset = 0;
 
     function lerpAngle(a, b, t) {
         let diff = b - a;
@@ -100,8 +103,8 @@
             waveAngle = 0;
         }
 
-        waveX = currentX;
-        waveY = currentY;
+        position.X = currentX;
+        position.Y = currentY;
 
         // Generate Path
         let d = `M${points[0].x},${points[0].y}`;
@@ -133,6 +136,11 @@
         }
     }
 
+    function determineScrollbarWidth(){
+        scrollBarWidth = ((testTime * 1000) * speed) / 600
+        scrollBarOffset = 600 - (scrollOffset / scrollBarWidth)
+    }
+ 
     onMount(() => {
         if (testActive) {
             startAnimation();
@@ -150,16 +158,16 @@
         scrollOffset = 0;
         points = [];
         pathData = "";
-        waveX = 0;
-        waveY = 0;
+        position = { X: 0, Y: 0 };
         smoothedWaveAngle = 0;
         startAnimation();
     } else {
         stopAnimation();
+        determineScrollbarWidth();
     }
 
-    //Handle panning when testActive is false
-    function handleMouseDown(e) {
+    // handle panning when test is over
+    function panMouseDown(e) {
         if (!testActive) {
             isPanning = true;
             panStartX = e.clientX;
@@ -167,7 +175,7 @@
         }
     }
 
-    function handleMouseMove(e) {
+    function panMouseMove(e) {
         if (isPanning && !testActive) {
             const deltaX = e.clientX - panStartX;
             scrollOffset = initialScrollOffset - deltaX;
@@ -175,7 +183,7 @@
         }
     }
 
-    function handleMouseUp() {
+    function panMouseUp() {
         isPanning = false;
     }
 </script>
@@ -185,19 +193,27 @@
     {width}
     {height}
     style="border: solid 1px #333; cursor: {testActive ? 'default' : 'grab'};"
-    on:mousedown={handleMouseDown}
-    on:mousemove={handleMouseMove}
-    on:mouseup={handleMouseUp}
-    on:mouseleave={handleMouseUp}
+    on:mousedown={panMouseDown}
+    on:mousemove={panMouseMove}
+    on:mouseup={panMouseUp}
+    on:mouseleave={panMouseUp}
 >
     <g transform={`translate(${-scrollOffset},0)`}>
         <path d={pathData} stroke={lineColor} fill="none" stroke-width="7" />
         {#if points.length > 1}
             <g
-                transform={`translate(${waveX},${waveY}) rotate(${smoothedWaveAngle})`}
+                transform={`translate(${position.X},${position.Y}) rotate(${smoothedWaveAngle})`}
             >
                 <polygon points="10,0 -6,-8 -6,8" fill={lineColor} />
             </g>
         {/if}
     </g>
 </svg>
+<br />
+
+<!-- <svg 
+width={scrollBarWidth} 
+height="10" 
+style="background-color: red;"
+transform={`translate(${scrollBarOffset},0)`}
+> </svg> -->
