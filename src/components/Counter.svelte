@@ -3,14 +3,16 @@
 
   let keys: [string, string] = $state(
     JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") ?? [
-      "c",
-      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
     ],
   );
   let rebinding: 0 | 1 | null = $state(null);
   let cooldown: boolean = $state(false);
 
   let _running: boolean = $state(false);
+  let pulse: boolean = $state(false);
+  let pulseTimeout: ReturnType<typeof setTimeout> | null = null;
 
   let {
     duration = 10,
@@ -79,6 +81,12 @@
         }
         lastClickAt = now;
         count += 1;
+        if (pulseTimeout) clearTimeout(pulseTimeout);
+        pulse = false;
+        requestAnimationFrame(() => {
+          pulse = true;
+          pulseTimeout = setTimeout(() => (pulse = false), 300);
+        });
       }
     }
   };
@@ -103,13 +111,18 @@
   <!-- Counter -->
   <div
     class="counter text-5xl! px-8! py-4! min-w-32 justify-center tabular-nums"
+    class:pulse
   >
     {count}
   </div>
 
   <!-- Timer Bar -->
   <div class="flex flex-col items-center gap-2 w-48">
-    <span class="text-xs" style="color: var(--text)">{DURATION}s</span>
+    <span class="text-xs" style="color: var(--text)">
+      {_running
+        ? `${Math.floor(timeLeft * 10) / 10}s remaining`
+        : `${DURATION}s`}
+    </span>
     <div
       class="w-full h-1 rounded-full overflow-hidden"
       style="background: var(--border)"
@@ -117,32 +130,25 @@
       <div
         class="h-full rounded-full"
         style="
-          width: {progress}%;
-          background: var(--accent);
-          transition: {timeLeft < DURATION && timeLeft > 0
+        width: {progress}%;
+        background: var(--accent);
+        transition: {timeLeft < DURATION && timeLeft > 0
           ? 'width 0.15s linear'
           : 'none'};
-          "
+      "
       ></div>
     </div>
     <button
-      onclick={start}
-      disabled={_running}
+      onclick={_running ? stop : start}
       class="w-full justify-center"
-      class:active={_running}
+      class:active={!_running}
+      class:hover:text-[var(--red)]!={_running}
+      class:hover:bg-[var(--red-bg)]!={_running}
+      class:hover:border-[var(--red-border)]!={_running}
+      class:hover:shadow-none!={_running}
     >
-      {_running
-        ? `${Math.floor(timeLeft * 10) / 10}s remaining`
-        : "Start spamming to begin"}
+      {_running ? "Stop" : "Start spamming to begin"}
     </button>
-    {#if _running}
-      <button
-        onclick={stop}
-        class="w-full justify-center hover:text-[--red]! hover:bg-[--red-bg]! hover:border-[--red-border]! hover:shadow-none!"
-      >
-        Stop
-      </button>
-    {/if}
   </div>
 
   <!-- Rebind buttons -->
