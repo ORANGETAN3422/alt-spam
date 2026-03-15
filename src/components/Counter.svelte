@@ -46,6 +46,16 @@
     }, 100);
   };
 
+  const stop = () => {
+    if (!_running) return;
+    clearInterval(interval!);
+    interval = null;
+    _running = false;
+    onRunComplete?.();
+    cooldown = true;
+    setTimeout(() => (cooldown = false), 1000);
+  };
+
   const handleKeydown = (e: KeyboardEvent) => {
     e.preventDefault();
     if (rebinding !== null) {
@@ -63,6 +73,12 @@
         count += 1;
       }
     }
+  };
+
+  const formatKey = (key: string) => {
+    if (key === " ") return "Space";
+    if (key.length === 1) return key.toUpperCase();
+    return key.replace(/([A-Z])/g, " $1").trim();
   };
 
   const progress = $derived(_running ? (timeLeft / DURATION) * 100 : 0);
@@ -110,6 +126,14 @@
         ? `${Math.floor(timeLeft * 10) / 10}s remaining`
         : "Start spamming to begin"}
     </button>
+    {#if _running}
+      <button
+        onclick={stop}
+        class="w-full justify-center hover:text-[--red]! hover:bg-[--red-bg]! hover:border-[--red-border]! hover:shadow-none!"
+      >
+        Stop
+      </button>
+    {/if}
   </div>
 
   <!-- Rebind buttons -->
@@ -123,14 +147,14 @@
         disabled={_running}
         onclick={() => (rebinding = rebinding === 0 ? null : 0)}
       >
-        {rebinding === 0 ? "…" : keys[0]}
+        {rebinding === 0 ? "…" : formatKey(keys[0])}
       </button>
       <button
         class:active={rebinding === 1}
         disabled={_running}
         onclick={() => (rebinding = rebinding === 1 ? null : 1)}
       >
-        {rebinding === 1 ? "…" : keys[1]}
+        {rebinding === 1 ? "…" : formatKey(keys[1])}
       </button>
     </div>
   </div>

@@ -2,6 +2,7 @@
   import Counter from "./components/Counter.svelte";
   import TimePicker from "./components/TimePicker.svelte";
   import StatsDisplay from "./components/StatsDisplay.svelte";
+  import ClickChart from "./components/ClickChart.svelte";
 
   let duration: number = $state(10);
   let count: number = $state(0);
@@ -19,14 +20,19 @@
   <div class="absolute left-8">
     <TimePicker bind:duration {running} />
   </div>
-  <Counter
-    {duration}
-    bind:count
-    bind:running
-    bind:timeLeft
-    bind:clickTimes
-    {onRunComplete}
-  />
+
+  <div class="flex flex-col items-center gap-6">
+    <Counter
+      {duration}
+      bind:count
+      bind:running
+      bind:timeLeft
+      bind:clickTimes
+      {onRunComplete}
+    />
+    <ClickChart {clickTimes} {running} />
+  </div>
+
   <div class="absolute right-8">
     <StatsDisplay {runs} {duration} {count} {timeLeft} {running} {clickTimes} />
   </div>

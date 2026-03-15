@@ -20,19 +20,24 @@
 
     let frozenCps: number | null = $state(null);
 
-    function calculateDeviance() {
-        if (clickTimes.length === 0) return null;
-        let sum = 0;
-        const mean = clickTimes.reduce((a, b) => a + b, 0) / clickTimes.length;
+    type DevianceMode = "all" | "even" | "odd";
 
-        for (const time of clickTimes) {
-            sum += (time - mean) ** 2;
-        }
+    function calculateDeviance(times: number[], mode: DevianceMode = "all") {
+        const filtered =
+            mode === "all"
+                ? times
+                : times.filter((_, i) =>
+                      mode === "even" ? i % 2 === 0 : i % 2 !== 0,
+                  );
 
-        const variance = sum / clickTimes.length;
-        const standardDeviation = Math.sqrt(variance);
+        if (filtered.length === 0) return null;
 
-        return standardDeviation;
+        const mean = filtered.reduce((a, b) => a + b, 0) / filtered.length;
+        const variance =
+            filtered.reduce((sum, t) => sum + (t - mean) ** 2, 0) /
+            filtered.length;
+
+        return Math.sqrt(variance);
     }
 
     $effect(() => {
@@ -62,11 +67,27 @@
         </div>
         <div class="flex justify-between gap-6">
             <span style="color: var(--text)">deviance</span>
-            <span
-                >{calculateDeviance() != null
-                    ? calculateDeviance()!.toFixed(2) + "ms"
-                    : "—"}</span
-            >
+            <div class="flex flex-col items-end gap-0.5">
+                <span
+                    >{clickTimes.length > 2
+                        ? calculateDeviance(clickTimes, "all")!.toFixed(2) +
+                          "ms"
+                        : "—"}</span
+                >
+            </div>
+        </div>
+        <div class="flex justify-between gap-6">
+            <span class="text-[12px] text-left" style="color: var(--text)">
+                input 1 ·
+                {clickTimes.length > 1
+                    ? calculateDeviance(clickTimes, "odd")!.toFixed(2) + "ms"
+                    : "—"}
+                <br />
+                input 2 ·
+                {clickTimes.length > 1
+                    ? calculateDeviance(clickTimes, "even")!.toFixed(2) + "ms"
+                    : "—"}
+            </span>
         </div>
     </div>
 </div>
