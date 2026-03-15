@@ -24,6 +24,7 @@
   const DURATION = $derived(duration);
   let interval: ReturnType<typeof setInterval> | null = null;
   let lastClickAt: number | null = null;
+  let debounceTime = 1000; // ms
 
   const start = () => {
     count = 0;
@@ -41,7 +42,7 @@
         _running = false;
         onRunComplete?.();
         cooldown = true;
-        setTimeout(() => (cooldown = false), 1000);
+        setTimeout(() => (cooldown = false), debounceTime);
       }
     }, 100);
   };

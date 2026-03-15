@@ -1,20 +1,17 @@
 <script lang="ts">
-    import { Line } from "svelte-chartjs";
+    import { onMount } from "svelte";
     import {
         Chart,
         LineElement,
         PointElement,
         LinearScale,
         CategoryScale,
-        type ChartOptions,
     } from "chart.js";
 
     Chart.register(LineElement, PointElement, LinearScale, CategoryScale);
 
     let { clickTimes, running }: { clickTimes: number[]; running: boolean } =
         $props();
-
-    const hasRun = $derived(clickTimes.length > 0);
 
     const accent = getComputedStyle(document.documentElement)
         .getPropertyValue("--accent")
@@ -23,47 +20,79 @@
         .getPropertyValue("--accent-bg")
         .trim();
 
-    const data = $derived({
-        labels: clickTimes.map((_, i) => i + 1),
-        datasets: [
-            {
-                data: clickTimes,
-                borderColor: accent,
-                backgroundColor: accentBg,
-                borderWidth: 2,
-                tension: 0.3,
-                pointRadius: 0,
-                fill: true,
+    let canvas: HTMLCanvasElement;
+    let chart: Chart;
+
+    onMount(() => {
+        chart = new Chart(canvas, {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        data: [],
+                        borderColor: accent,
+                        backgroundColor: accentBg,
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 0,
+                        fill: true,
+                    },
+                ],
             },
-        ],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 200, easing: "easeOutQuart" } as any,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: {
+                        ticks: {
+                            color: accent,
+                            maxTicksLimit: 5,
+                            callback: (value) => `${value}ms`,
+                            font: {
+                                family: getComputedStyle(
+                                    document.documentElement,
+                                )
+                                    .getPropertyValue("--mono")
+                                    .trim(),
+                            },
+                        },
+                        grid: { color: accentBg },
+                        border: { display: false },
+                    },
+                },
+            },
+        });
     });
 
-    const options: ChartOptions<"line"> = {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: {
-            duration: 600,
-            easing: "easeOutQuart",
-        } as any,
-        plugins: { legend: { display: false } },
-        scales: {
-            x: { display: false },
-            y: {
-                ticks: {
-                    color: accent,
-                    maxTicksLimit: 5,
-                },
-                grid: {
-                    color: accentBg,
-                },
-                border: { display: false },
-            },
-        },
-    };
+    $effect(() => {
+        if (!chart) return;
+        const len = clickTimes.length;
+        if (len === 0) {
+            chart.data.labels = [];
+            chart.data.datasets[0].data = [];
+            chart.update("none");
+            return;
+        }
+        chart.data.labels = clickTimes.map((_, i) => i + 1);
+        chart.data.datasets[0].data.push(clickTimes[len - 1]);
+        chart.update("active");
+    });
+
+    const hasRun = $derived(clickTimes.length > 0);
 </script>
 
-{#if hasRun && !running}
-    <div class="w-xl h-48">
-        <Line {data} {options} />
+<div class="flex flex-col items-center gap-1">
+    <div style="width: 600px; height: 200px;">
+        <canvas bind:this={canvas}></canvas>
     </div>
-{/if}
+    <span
+        class="text-xs font-bold"
+        style="color: var(--accent); font-family: var(--mono)"
+        >Time Between Clicks</span
+    >
+</div>
