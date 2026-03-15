@@ -1,0 +1,137 @@
+<script lang="ts">
+  let keys: [string, string] = $state(["c", "ArrowDown"]);
+  let rebinding: 0 | 1 | null = $state(null);
+  let cooldown: boolean = $state(false);
+
+  let _running: boolean = $state(false);
+
+  let {
+    duration = 10,
+    count = $bindable(0),
+    running = $bindable(false),
+    timeLeft = $bindable(0),
+    clickTimes = $bindable<number[]>([]),
+    onRunComplete,
+  }: {
+    duration: number;
+    count: number;
+    running: boolean;
+    timeLeft: number;
+    clickTimes: number[];
+    onRunComplete?: () => void;
+  } = $props();
+
+  const DURATION = $derived(duration);
+  let interval: ReturnType<typeof setInterval> | null = null;
+  let lastClickAt: number | null = null;
+
+  const start = () => {
+    count = 0;
+    clickTimes = [];
+    lastClickAt = null;
+    _running = true;
+    const startedAt = Date.now();
+    timeLeft = DURATION;
+    interval = setInterval(() => {
+      const elapsed = (Date.now() - startedAt) / 1000;
+      timeLeft = Math.max(0, DURATION - elapsed);
+      if (timeLeft <= 0) {
+        clearInterval(interval!);
+        interval = null;
+        _running = false;
+        onRunComplete?.();
+        cooldown = true;
+        setTimeout(() => (cooldown = false), 1000);
+      }
+    }, 100);
+  };
+
+  const handleKeydown = (e: KeyboardEvent) => {
+    e.preventDefault();
+    if (rebinding !== null) {
+      keys[rebinding] = e.key;
+      rebinding = null;
+    } else if (keys.includes(e.key) && !cooldown) {
+      if (!_running) {
+        start();
+      } else {
+        const now = Date.now();
+        if (lastClickAt !== null) {
+          clickTimes = [...clickTimes, now - lastClickAt];
+        }
+        lastClickAt = now;
+        count += 1;
+      }
+    }
+  };
+
+  const progress = $derived(_running ? (timeLeft / DURATION) * 100 : 0);
+
+  $effect(() => {
+    running = _running;
+  });
+</script>
+
+<svelte:window onkeydown={handleKeydown} />
+
+<div class="flex flex-col items-center gap-6">
+  <!-- Counter -->
+  <div
+    class="counter text-5xl! px-8! py-4! min-w-32 justify-center tabular-nums"
+  >
+    {count}
+  </div>
+
+  <!-- Timer Bar -->
+  <div class="flex flex-col items-center gap-2 w-48">
+    <span class="text-xs" style="color: var(--text)">{DURATION}s</span>
+    <div
+      class="w-full h-1 rounded-full overflow-hidden"
+      style="background: var(--border)"
+    >
+      <div
+        class="h-full rounded-full"
+        style="
+          width: {progress}%;
+          background: var(--accent);
+          transition: {timeLeft < DURATION && timeLeft > 0
+          ? 'width 0.15s linear'
+          : 'none'};
+          "
+      ></div>
+    </div>
+    <button
+      onclick={start}
+      disabled={_running}
+      class="w-full justify-center"
+      class:active={_running}
+    >
+      {_running
+        ? `${Math.floor(timeLeft * 10) / 10}s remaining`
+        : "Start spamming to begin"}
+    </button>
+  </div>
+
+  <!-- Rebind buttons -->
+  <div class="flex flex-col items-center gap-1.5">
+    <span class="text-xs" style="color: var(--text)"
+      >keys (click to rebind)</span
+    >
+    <div class="flex gap-1">
+      <button
+        class:active={rebinding === 0}
+        disabled={_running}
+        onclick={() => (rebinding = rebinding === 0 ? null : 0)}
+      >
+        {rebinding === 0 ? "…" : keys[0]}
+      </button>
+      <button
+        class:active={rebinding === 1}
+        disabled={_running}
+        onclick={() => (rebinding = rebinding === 1 ? null : 1)}
+      >
+        {rebinding === 1 ? "…" : keys[1]}
+      </button>
+    </div>
+  </div>
+</div>
