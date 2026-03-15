@@ -2,16 +2,22 @@
     import { onMount } from "svelte";
     import {
         Chart,
+        LineController,
         LineElement,
         PointElement,
         LinearScale,
         CategoryScale,
     } from "chart.js";
 
-    Chart.register(LineElement, PointElement, LinearScale, CategoryScale);
+    Chart.register(
+        LineController,
+        LineElement,
+        PointElement,
+        LinearScale,
+        CategoryScale,
+    );
 
-    let { clickTimes, running }: { clickTimes: number[]; running: boolean } =
-        $props();
+    let { clickTimes }: { clickTimes: number[] } = $props();
 
     const accent = getComputedStyle(document.documentElement)
         .getPropertyValue("--accent")
@@ -82,8 +88,6 @@
         chart.data.datasets[0].data.push(clickTimes[len - 1]);
         chart.update("active");
     });
-
-    const hasRun = $derived(clickTimes.length > 0);
 </script>
 
 <div class="flex flex-col items-center gap-1">

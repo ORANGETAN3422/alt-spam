@@ -3,6 +3,7 @@
   import TimePicker from "./components/TimePicker.svelte";
   import StatsDisplay from "./components/StatsDisplay.svelte";
   import ClickChart from "./components/ClickChart.svelte";
+  import Background from "./components/Background.svelte";
 
   let duration: number = $state(10);
   let count: number = $state(0);
@@ -16,6 +17,7 @@
   };
 </script>
 
+<Background />
 <main class="min-h-svh relative flex items-center justify-center">
   <div class="absolute left-8">
     <TimePicker bind:duration {running} />
@@ -30,7 +32,7 @@
       bind:clickTimes
       {onRunComplete}
     />
-    <ClickChart {clickTimes} {running} />
+    <ClickChart {clickTimes} />
   </div>
 
   <div class="absolute right-8">

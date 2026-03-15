@@ -1,5 +1,12 @@
 <script lang="ts">
-  let keys: [string, string] = $state(["c", "ArrowDown"]);
+  const STORAGE_KEY = "keybinds";
+
+  let keys: [string, string] = $state(
+    JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null") ?? [
+      "c",
+      "ArrowDown",
+    ],
+  );
   let rebinding: 0 | 1 | null = $state(null);
   let cooldown: boolean = $state(false);
 
@@ -86,6 +93,7 @@
 
   $effect(() => {
     running = _running;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
   });
 </script>
 

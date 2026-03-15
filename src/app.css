@@ -165,11 +165,51 @@ code {
   max-width: 100%;
   margin: 0 auto;
   text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+
+  position: relative;
+  background: transparent;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(40px) brightness(1.1) saturate(1.2);
+    -webkit-backdrop-filter: blur(40px) brightness(1.1) saturate(1.2);
+    background: rgba(255, 255, 255, 0.04);
+    border-inline: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: -1;
+    mask-image: linear-gradient(to right,
+        transparent,
+        black 10px,
+        black calc(100% - 10px),
+        transparent);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(135deg,
+        rgba(205, 205, 255, 0.12) 0%,
+        rgba(205, 205, 255, 0.02) 20%,
+        rgba(205, 205, 255, 0.01) 30%,
+        rgba(205, 205, 255, 0) 50%,
+        rgba(205, 205, 255, 0.01) 70%,
+        rgba(205, 205, 255, 0.02) 80%,
+        rgba(205, 205, 255, 0.1) 100%) border-box;
+    box-shadow:
+      inset -1px 0 20px rgba(205, 205, 255, 0.02),
+      inset 0 -1px 20px rgba(205, 205, 255, 0.02);
+    filter: blur(1px);
+  }
 }
 
 #center {
